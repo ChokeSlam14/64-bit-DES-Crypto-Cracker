@@ -1,0 +1,63 @@
+module control(clk, reset, start, found, up, enable1, enable2); 
+
+   input logic  clk;
+   input logic 	start, found, reset;
+   
+   output logic up, enable1, enable2;
+
+   typedef enum logic [1:0] {Idle_state, Count_up, Store_state, Key_found} statetype;
+   statetype state, nextstate;
+   
+   // state register
+   always_ff @(posedge clk, posedge reset)
+     if (reset) state <= Idle_state;
+     else       state <= nextstate;
+   
+   // next state logic
+   always_comb
+     case (state)
+       
+       Idle_state: begin
+	  up <= 1'b0;
+	  enable1 <= 1'b0;
+	  enable2 <= 1'b0;
+	  if (start) nextstate <= Count_up;
+	  else nextstate <= Idle_state;	  
+       end
+      
+       Count_up: begin
+	  up <= 1'b1;
+	  enable1 <= 1'b0;
+	  enable2 <= 1'b0;  
+	  nextstate <= Store_state;	  
+       end
+       
+       Store_state: begin
+	  up <= 1'b0;
+	  enable1 <= 1'b1;
+	  enable2 <= 1'b0;	  
+	  if (found) nextstate <= Key_found;
+	  else nextstate <= Count_up;
+       end
+       
+       Key_found: begin
+	  up <= 1'b0;
+	  enable1 <= 1'b0;
+	  enable2 <= 1'b1;
+	  if (start) nextstate <= Key_found;
+	  else nextstate <= Idle_state;	  	  
+       end
+       default: begin
+	  enable1 <= 1'b0;
+	  enable2 <= 1'b0;
+	  up <= 1'b0;	  
+	  nextstate <= Idle_state;
+       end 
+	  
+     endcase
+   
+
+
+
+
+endmodule
